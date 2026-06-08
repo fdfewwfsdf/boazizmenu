@@ -62,7 +62,7 @@ local weaponsMenu = {
 
 local respawnWeaponsMenu = {
     { label = "جميع الأسلحة", action = function() respawnAllWeapons() end },
-    { label = "كيف حذف الأسلحة", action = function() removeAllWeapons() end },
+    { label = "حذف الأسلحة", action = function() removeAllWeapons() end },
     { label = "⬅️ رجوع", submenu = "weapons" }
 }
 
@@ -159,13 +159,9 @@ function drawMenu()
     local itemHeight = 0.035
     local totalHeight = itemHeight * (#currentOptions + 1)
     
-    -- رسم الخلفية
     DrawRect(menuX + menuWidth/2, menuY + totalHeight/2, menuWidth, totalHeight, 0, 0, 0, 200)
-    
-    -- رسم العنوان
     drawText("≡ MachoCheats Pro", menuX + menuWidth/2, menuY - 0.025, menuScale + 0.1, 255, 0, 255, 255)
     
-    -- رسم الخيارات
     for i, option in ipairs(currentOptions) do
         local optionY = menuY + (itemHeight * (i - 0.5))
         local isSelected = (i == selectedOption)
@@ -389,7 +385,6 @@ function toggleTime()
     print("^2[MachoCheats]^7 تم تبديل الليل والنهار")
 end
 
--- ============ AIMBOT ============
 function toggleAimbot()
     aimbotEnabled = not aimbotEnabled
     if aimbotEnabled then
@@ -399,7 +394,6 @@ function toggleAimbot()
     end
 end
 
--- ============ SILENT AIM ============
 function toggleSilentAim()
     silentAimEnabled = not silentAimEnabled
     if silentAimEnabled then
@@ -409,7 +403,6 @@ function toggleSilentAim()
     end
 end
 
--- ============ ESP ============
 function toggleESP()
     espEnabled = not espEnabled
     if espEnabled then
@@ -431,7 +424,6 @@ function enableAutoHeadshot()
     print("^2[MachoCheats]^7 Auto Headshot: مفعل")
 end
 
--- ============ دالة العثور على أقرب لاعب ============
 function GetClosestPed()
     local playerPed = PlayerPedId()
     local players = GetPlayers()
@@ -464,77 +456,6 @@ function GetPlayers()
     return players
 end
 
--- ============ خيط Aimbot ============
-Citizen.CreateThread(function()
-    while true do
-        Wait(0)
-        
-        if aimbotEnabled then
-            local targetPed = GetClosestPed()
-            if targetPed ~= nil then
-                local playerPed = PlayerPedId()
-                local targetCoords = GetPedBoneCoords(targetPed, 0x796E8440, 0, 0, 0) -- رأس اللاعب
-                local playerCoords = GetEntityCoords(playerPed)
-                
-                -- توجيه الرؤية نحو الهدف
-                local direction = targetCoords - playerCoords
-                local yaw = math.atan2(direction.y, direction.x) * 180 / math.pi
-                local pitch = math.atan2(direction.z, #(vector2(direction.x, direction.y))) * 180 / math.pi
-                
-                -- تطبيق الاتجاه
-                SetGameplayCamRelativeHeading(yaw)
-            end
-        end
-        
-        if silentAimEnabled then
-            local targetPed = GetClosestPed()
-            if targetPed ~= nil and IsPlayerFreeAiming(PlayerId()) then
-                local targetCoords = GetPedBoneCoords(targetPed, 0x796E8440, 0, 0, 0)
-                local playerPed = PlayerPedId()
-                local weaponHash = GetSelectedPedWeapon(playerPed)
-                
-                -- إطلاق النار بصمت نحو الهدف
-                if GetAmmoInClip(playerPed, weaponHash) > 0 then
-                    ShootAtCoord(playerPed, targetCoords.x, targetCoords.y, targetCoords.z, weaponHash)
-                end
-            end
-        end
-    end
-end)
-
--- ============ خيط ESP ============
-Citizen.CreateThread(function()
-    while true do
-        Wait(0)
-        
-        if espEnabled then
-            local players = GetPlayers()
-            for _, player in ipairs(players) do
-                if player ~= PlayerId() then
-                    local targetPed = GetPlayerPed(player)
-                    if targetPed ~= 0 then
-                        local targetCoords = GetEntityCoords(targetPed)
-                        local playerPed = PlayerPedId()
-                        local playerCoords = GetEntityCoords(playerPed)
-                        
-                        -- حساب المسافة
-                        local distance = #(playerCoords - targetCoords)
-                        
-                        -- رسم خط من اللاعب إلى الهدف
-                        DrawLine(playerCoords.x, playerCoords.y, playerCoords.z, targetCoords.x, targetCoords.y, targetCoords.z, 255, 0, 255, 200)
-                        
-                        -- رسم صندوق حول الهدف
-                        local x, y = GetScreenCoordFromWorldCoord(targetCoords.x, targetCoords.y, targetCoords.z)
-                        if x ~= false and y ~= false then
-                            drawText("["..math.floor(distance).."m]", x, y, 0.4, 255, 0, 255, 255)
-                        end
-                    end
-                end
-            end
-        end
-    end
-end)
-
 -- ============ خيط الطيران ============
 Citizen.CreateThread(function()
     while true do
@@ -544,16 +465,16 @@ Citizen.CreateThread(function()
             local ped = PlayerPedId()
             local x, y, z = table.unpack(GetEntityCoords(ped))
             
-            if IsControlPressed(0, 32) then -- W
+            if IsControlPressed(0, 32) then
                 z = z + 1.0
             end
-            if IsControlPressed(0, 33) then -- S
+            if IsControlPressed(0, 33) then
                 z = z - 1.0
             end
-            if IsControlPressed(0, 34) then -- A
+            if IsControlPressed(0, 34) then
                 x = x - 1.0
             end
-            if IsControlPressed(0, 35) then -- D
+            if IsControlPressed(0, 35) then
                 x = x + 1.0
             end
             
@@ -567,7 +488,6 @@ Citizen.CreateThread(function()
     while true do
         Wait(0)
         
-        -- فتح المنيو بـ semicolon (;)
         if IsControlJustReleased(0, 243) then
             toggleMenu()
         end
@@ -575,7 +495,6 @@ Citizen.CreateThread(function()
         if menuOpen then
             local currentOptions = getMenuOptions()
             
-            -- التنقل لأعلى
             if IsControlJustReleased(0, 172) then
                 selectedOption = selectedOption - 1
                 if selectedOption < 1 then
@@ -583,7 +502,6 @@ Citizen.CreateThread(function()
                 end
             end
             
-            -- التنقل لأسفل
             if IsControlJustReleased(0, 173) then
                 selectedOption = selectedOption + 1
                 if selectedOption > #currentOptions then
@@ -591,7 +509,6 @@ Citizen.CreateThread(function()
                 end
             end
             
-            -- تنفيذ الخيار
             if IsControlJustReleased(0, 191) then
                 local option = currentOptions[selectedOption]
                 if option.submenu then
@@ -602,7 +519,6 @@ Citizen.CreateThread(function()
                 end
             end
             
-            -- العودة للقائمة السابقة
             if IsControlJustReleased(0, 194) then
                 if currentMenu ~= "main" then
                     currentMenu = "main"
@@ -616,3 +532,6 @@ Citizen.CreateThread(function()
         drawMenu()
     end
 end)
+
+print("^2[MachoCheats]^7 تم تحميل المنيو بنجاح!")
+print("^2[MachoCheats]^7 اضغط ; لفتح/إغلاق المنيو")
