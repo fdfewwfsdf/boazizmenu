@@ -1,11 +1,11 @@
--- MachoCheats Advanced Menu - macOS FiveM Executor
--- منيو متقدم جداً مع خصائص كاملة + Aimbot + Silent Aim + ESP
+-- BOAZIZMENU - Advanced FiveM Menu for Educational Purposes
+-- Optimized and Fixed Version
 
 local menuOpen = false
 local selectedOption = 1
-local menuScale = 0.5
-local menuX = 0.15
-local menuY = 0.15
+local menuScale = 0.4
+local menuX = 0.01
+local menuY = 0.1
 local flyMode = false
 local godMode = false
 local invisibleMode = false
@@ -13,128 +13,107 @@ local aimbotEnabled = false
 local silentAimEnabled = false
 local espEnabled = false
 local currentMenu = "main"
+local lastToggleTime = 0
+local toggleDelay = 200
 
+-- Main Menu
 local mainMenu = {
-    { label = "🚗 السيارات", submenu = "vehicles" },
-    { label = "🔫 الأسلحة", submenu = "weapons" },
-    { label = "✈️ طيران", submenu = "flying" },
-    { label = "👤 شخصيات", submenu = "skins" },
-    { label = "💰 أموال", action = function() giveMoney(999999) end },
-    { label = "💣 تفجير وتخريب", submenu = "destroy" },
-    { label = "🛡️ حماية", submenu = "protection" },
-    { label = "🎯 أدوات القتال", submenu = "combat" },
-    { label = "⚙️ إعدادات", submenu = "settings" },
-    { label = "❌ إغلاق", action = function() menuOpen = false end }
+    { label = "[1] Vehicles", submenu = "vehicles" },
+    { label = "[2] Weapons", submenu = "weapons" },
+    { label = "[3] Flight", submenu = "flying" },
+    { label = "[4] Skins", submenu = "skins" },
+    { label = "[5] Money", action = function() giveMoney(999999) end },
+    { label = "[6] Destruction", submenu = "destroy" },
+    { label = "[7] Protection", submenu = "protection" },
+    { label = "[8] Combat", submenu = "combat" },
+    { label = "[9] Settings", submenu = "settings" },
+    { label = "[ESC] Close Menu", action = function() menuOpen = false end }
 }
 
 local vehiclesMenu = {
-    { label = "🚙 استدعاء أديلر", action = function() spawnVehicle("adder") end },
-    { label = "🏎️ استدعاء سنتورنو", action = function() spawnVehicle("zentorno") end },
-    { label = "🚓 استدعاء باغاتي", action = function() spawnVehicle("turismo") end },
-    { label = "🚁 استدعاء هليكوبتر", action = function() spawnVehicle("swift") end },
-    { label = "🔧 إصلاح السيارة", action = function() repairVehicle() end },
-    { label = "🚫 جعل السيارة تختفي", action = function() hideVehicle() end },
-    { label = "📍 نقل السيارة", action = function() teleportVehicle() end },
-    { label = "🔄 رسبنة سيارات", submenu = "respawn_vehicles" },
-    { label = "⬅️ رجوع", submenu = "main" }
-}
-
-local respawnVehiclesMenu = {
-    { label = "رسبنة في المرآب", action = function() respawnVehicleGarage() end },
-    { label = "رسبنة في المكان الحالي", action = function() respawnVehicleHere() end },
-    { label = "⬅️ رجوع", submenu = "vehicles" }
+    { label = "Spawn Adder", action = function() spawnVehicle("adder") end },
+    { label = "Spawn Zentorno", action = function() spawnVehicle("zentorno") end },
+    { label = "Spawn Turismo", action = function() spawnVehicle("turismo") end },
+    { label = "Spawn Helicopter", action = function() spawnVehicle("swift") end },
+    { label = "Repair Vehicle", action = function() repairVehicle() end },
+    { label = "Delete Vehicle", action = function() hideVehicle() end },
+    { label = "Teleport Vehicle", action = function() teleportVehicle() end },
+    { label = "Back", submenu = "main" }
 }
 
 local weaponsMenu = {
-    { label = "🔫 بندقية عادية", action = function() giveWeapon("WEAPON_PISTOL") end },
-    { label = "🔫 بندقية قتالية", action = function() giveWeapon("WEAPON_COMBATPISTOL") end },
-    { label = "🔫 رشاش", action = function() giveWeapon("WEAPON_SMG") end },
-    { label = "🔫 رشاش ثقيل", action = function() giveWeapon("WEAPON_ASSAULTSMG") end },
-    { label = "🔫 بندقية الهجوم", action = function() giveWeapon("WEAPON_ASSAULTRIFLE") end },
-    { label = "🔫 بندقية قنص", action = function() giveWeapon("WEAPON_SNIPERRIFLE") end },
-    { label = "💣 قنبلة يدوية", action = function() giveWeapon("WEAPON_GRENADE") end },
-    { label = "💣 قنبلة صاروخية", action = function() giveWeapon("WEAPON_RPG") end },
-    { label = "🔥 رشاش نار", action = function() giveWeapon("WEAPON_FLAMETHROWER") end },
-    { label = "🔧 معدات إضافية", action = function() giveWeapon("WEAPON_MACHETE") end },
-    { label = "🔄 رسبنة أسلحة", submenu = "respawn_weapons" },
-    { label = "⬅️ رجوع", submenu = "main" }
-}
-
-local respawnWeaponsMenu = {
-    { label = "جميع الأسلحة", action = function() respawnAllWeapons() end },
-    { label = "حذف الأسلحة", action = function() removeAllWeapons() end },
-    { label = "⬅️ رجوع", submenu = "weapons" }
+    { label = "Pistol", action = function() giveWeapon("WEAPON_PISTOL") end },
+    { label = "Combat Pistol", action = function() giveWeapon("WEAPON_COMBATPISTOL") end },
+    { label = "SMG", action = function() giveWeapon("WEAPON_SMG") end },
+    { label = "Assault SMG", action = function() giveWeapon("WEAPON_ASSAULTSMG") end },
+    { label = "Assault Rifle", action = function() giveWeapon("WEAPON_ASSAULTRIFLE") end },
+    { label = "Sniper Rifle", action = function() giveWeapon("WEAPON_SNIPERRIFLE") end },
+    { label = "Grenade", action = function() giveWeapon("WEAPON_GRENADE") end },
+    { label = "RPG", action = function() giveWeapon("WEAPON_RPG") end },
+    { label = "All Weapons", action = function() respawnAllWeapons() end },
+    { label = "Remove All Weapons", action = function() removeAllWeapons() end },
+    { label = "Back", submenu = "main" }
 }
 
 local flyingMenu = {
-    { label = "🚀 تفعيل الطيران", action = function() toggleFlight() end },
-    { label = "📍 نقل سحب", action = function() teleportToMarker() end },
-    { label = "🎯 نقل سريع للنقاط", submenu = "teleport" },
-    { label = "⬅️ رجوع", submenu = "main" }
+    { label = "Toggle Flight", action = function() toggleFlight() end },
+    { label = "Teleport to Marker", action = function() teleportToMarker() end },
+    { label = "Quick Teleport", submenu = "teleport" },
+    { label = "Back", submenu = "main" }
 }
 
 local teleportMenu = {
-    { label = "🏠 الشقة", action = function() teleport(425.4, -981.6, 29.4) end },
-    { label = "🏦 البنك", action = function() teleport(150.0, -1044.0, 29.4) end },
-    { label = "🚔 مركز شرطة", action = function() teleport(425.4, -981.6, 29.4) end },
-    { label = "🛫 المطار", action = function() teleport(-1034.7, -2720.0, 13.8) end },
-    { label = "🏖️ الشاطئ", action = function() teleport(-1349.0, -1278.0, 5.3) end },
-    { label = "⬅️ رجوع", submenu = "flying" }
+    { label = "Apartment", action = function() teleport(425.4, -981.6, 29.4) end },
+    { label = "Bank", action = function() teleport(150.0, -1044.0, 29.4) end },
+    { label = "Police Station", action = function() teleport(425.4, -981.6, 29.4) end },
+    { label = "Airport", action = function() teleport(-1034.7, -2720.0, 13.8) end },
+    { label = "Beach", action = function() teleport(-1349.0, -1278.0, 5.3) end },
+    { label = "Back", submenu = "flying" }
 }
 
 local skinsMenu = {
-    { label = "👨‍💼 تاجر مخدرات", action = function() setSkin("a_m_m_business_1") end },
-    { label = "👮 شرطي", action = function() setSkin("a_m_y_cop_1") end },
-    { label = "👷 عامل", action = function() setSkin("a_m_m_business_2") end },
-    { label = "🧔 رجل عادي", action = function() setSkin("a_m_y_business_1") end },
-    { label = "👩 امرأة", action = function() setSkin("a_f_y_business_1") end },
-    { label = "⬅️ رجوع", submenu = "main" }
+    { label = "Business Man", action = function() setSkin("a_m_m_business_1") end },
+    { label = "Cop", action = function() setSkin("a_m_y_cop_1") end },
+    { label = "Worker", action = function() setSkin("a_m_m_business_2") end },
+    { label = "Casual Man", action = function() setSkin("a_m_y_business_1") end },
+    { label = "Woman", action = function() setSkin("a_f_y_business_1") end },
+    { label = "Back", submenu = "main" }
 }
 
 local destroyMenu = {
-    { label = "💥 تفجير السيارة", action = function() explodeVehicle() end },
-    { label = "💥 تفجير اللاعبين", action = function() explodePlayers() end },
-    { label = "🔥 إشعال النار", action = function() setFire() end },
-    { label = "🌪️ عاصفة رياح", action = function() windStorm() end },
-    { label = "❄️ تجميد الشاشة", action = function() freezeScreen() end },
-    { label = "💔 إلحاق الضرر", action = function() takeDamage(50) end },
-    { label = "⬅️ رجوع", submenu = "main" }
+    { label = "Explode Vehicle", action = function() explodeVehicle() end },
+    { label = "Set Fire", action = function() setFire() end },
+    { label = "Take Damage (50)", action = function() takeDamage(50) end },
+    { label = "Back", submenu = "main" }
 }
 
 local protectionMenu = {
-    { label = "🛡️ حماية الأبد (God Mode)", action = function() toggleGodMode() end },
-    { label = "👻 تخفي", action = function() toggleInvisible() end },
-    { label = "🎯 منع الضرر من السيارات", action = function() preventCarDamage() end },
-    { label = "💨 سرعة خارقة", action = function() setSpeed() end },
-    { label = "🧗 تسلق المباني", action = function() enableClimbing() end },
-    { label = "⬅️ رجوع", submenu = "main" }
+    { label = "God Mode: " .. (godMode and "ON" or "OFF"), action = function() toggleGodMode() end },
+    { label = "Invisibility: " .. (invisibleMode and "ON" or "OFF"), action = function() toggleInvisible() end },
+    { label = "Super Speed", action = function() setSpeed() end },
+    { label = "Back", submenu = "main" }
 }
 
 local combatMenu = {
-    { label = "🎯 Aimbot", action = function() toggleAimbot() end },
-    { label = "🔍 Silent Aim", action = function() toggleSilentAim() end },
-    { label = "👁️ ESP", action = function() toggleESP() end },
-    { label = "💣 Wallbang", action = function() enableWallbang() end },
-    { label = "⚡ One Shot Kill", action = function() enableOneShot() end },
-    { label = "🎯 Auto Headshot", action = function() enableAutoHeadshot() end },
-    { label = "⬅️ رجوع", submenu = "main" }
+    { label = "Aimbot: " .. (aimbotEnabled and "ON" or "OFF"), action = function() toggleAimbot() end },
+    { label = "Silent Aim: " .. (silentAimEnabled and "ON" or "OFF"), action = function() toggleSilentAim() end },
+    { label = "ESP: " .. (espEnabled and "ON" or "OFF"), action = function() toggleESP() end },
+    { label = "One Shot Kill", action = function() enableOneShot() end },
+    { label = "Back", submenu = "main" }
 }
 
 local settingsMenu = {
-    { label = "🔊 صوت عالي", action = function() setVolume(1.0) end },
-    { label = "🔇 صوت منخفض", action = function() setVolume(0.5) end },
-    { label = "⏱️ إبطاء الزمن", action = function() setTimeScale(0.5) end },
-    { label = "⚡ تسريع الزمن", action = function() setTimeScale(1.0) end },
-    { label = "🌙 تبديل الليل والنهار", action = function() toggleTime() end },
-    { label = "⬅️ رجوع", submenu = "main" }
+    { label = "High Volume", action = function() setVolume(1.0) end },
+    { label = "Low Volume", action = function() setVolume(0.5) end },
+    { label = "Slow Time", action = function() setTimeScale(0.5) end },
+    { label = "Normal Time", action = function() setTimeScale(1.0) end },
+    { label = "Back", submenu = "main" }
 }
 
 function getMenuOptions()
     if currentMenu == "main" then return mainMenu
     elseif currentMenu == "vehicles" then return vehiclesMenu
-    elseif currentMenu == "respawn_vehicles" then return respawnVehiclesMenu
     elseif currentMenu == "weapons" then return weaponsMenu
-    elseif currentMenu == "respawn_weapons" then return respawnWeaponsMenu
     elseif currentMenu == "flying" then return flyingMenu
     elseif currentMenu == "teleport" then return teleportMenu
     elseif currentMenu == "skins" then return skinsMenu
@@ -149,30 +128,40 @@ end
 function toggleMenu()
     menuOpen = not menuOpen
     selectedOption = 1
+    if menuOpen then
+        currentMenu = "main"
+    end
 end
 
 function drawMenu()
     if not menuOpen then return end
     
     local currentOptions = getMenuOptions()
-    local menuWidth = 0.25
-    local itemHeight = 0.035
+    local menuWidth = 0.2
+    local itemHeight = 0.028
     local totalHeight = itemHeight * (#currentOptions + 1)
     
-    DrawRect(menuX + menuWidth/2, menuY + totalHeight/2, menuWidth, totalHeight, 0, 0, 0, 200)
-    drawText("≡ MachoCheats Pro", menuX + menuWidth/2, menuY - 0.025, menuScale + 0.1, 255, 0, 255, 255)
+    -- Draw Background
+    DrawRect(menuX + menuWidth/2, menuY + totalHeight/2, menuWidth, totalHeight, 0, 0, 0, 220)
     
+    -- Draw Border
+    DrawRect(menuX + menuWidth/2, menuY - 0.01, menuWidth, 0.002, 0, 200, 255, 255)
+    
+    -- Draw Title
+    drawText("BOAZIZMENU", menuX + 0.01, menuY - 0.035, 0.5, 0, 200, 255, 255)
+    
+    -- Draw Options
     for i, option in ipairs(currentOptions) do
         local optionY = menuY + (itemHeight * (i - 0.5))
         local isSelected = (i == selectedOption)
         
         if isSelected then
-            DrawRect(menuX + menuWidth/2, optionY, menuWidth, itemHeight, 255, 0, 255, 220)
+            DrawRect(menuX + menuWidth/2, optionY, menuWidth, itemHeight, 0, 200, 255, 255)
+            drawText(option.label, menuX + 0.01, optionY - 0.008, menuScale, 0, 0, 0, 255)
         else
-            DrawRect(menuX + menuWidth/2, optionY, menuWidth, itemHeight, 50, 50, 50, 150)
+            DrawRect(menuX + menuWidth/2, optionY, menuWidth, itemHeight, 30, 30, 30, 180)
+            drawText(option.label, menuX + 0.01, optionY - 0.008, menuScale, 200, 200, 200, 255)
         end
-        
-        drawText(option.label, menuX + 0.01, optionY - 0.007, menuScale, 255, 255, 255, 255)
     end
 end
 
@@ -180,15 +169,16 @@ function drawText(text, x, y, scale, r, g, b, a)
     SetTextFont(0)
     SetTextScale(scale, scale)
     SetTextColour(r, g, b, a)
+    SetTextOutline()
     BeginTextCommandDisplayText("STRING")
     AddTextComponentString(text)
     EndTextCommandDisplayText(x, y)
 end
 
--- ============ الأوامر الفعلية ============
+-- ============ Functions ============
 
 function giveMoney(amount)
-    print("^2[MachoCheats]^7 تمت إضافة " .. amount .. " دولار")
+    print("^2[BOAZIZMENU]^7 Money given: " .. amount)
 end
 
 function spawnVehicle(modelName)
@@ -196,15 +186,14 @@ function spawnVehicle(modelName)
     local model = GetHashKey(modelName)
     RequestModel(model)
     local timeout = 0
-    while not HasModelLoaded(model) and timeout < 10 do
-        Wait(100)
+    while not HasModelLoaded(model) and timeout < 5 do
+        Wait(50)
         timeout = timeout + 1
     end
     if HasModelLoaded(model) then
         local x, y, z = table.unpack(GetEntityCoords(ped))
-        local vehicle = CreateVehicle(model, x + 5, y, z, GetEntityHeading(ped), true, false)
-        SetPedIntoVehicle(ped, vehicle, -1)
-        print("^2[MachoCheats]^7 تم استدعاء السيارة: " .. modelName)
+        CreateVehicle(model, x + 5, y, z, GetEntityHeading(ped), true, false)
+        print("^2[BOAZIZMENU]^7 Vehicle spawned: " .. modelName)
     end
 end
 
@@ -214,7 +203,7 @@ function repairVehicle()
         local vehicle = GetVehiclePedIsIn(ped)
         SetVehicleEngineHealth(vehicle, 1000.0)
         SetVehicleDeformationFixed(vehicle)
-        print("^2[MachoCheats]^7 تم إصلاح السيارة")
+        print("^2[BOAZIZMENU]^7 Vehicle repaired")
     end
 end
 
@@ -222,11 +211,8 @@ function hideVehicle()
     local ped = PlayerPedId()
     if IsPedInAnyVehicle(ped) then
         local vehicle = GetVehiclePedIsIn(ped)
-        SmashVehicleWindow(vehicle, 0)
-        SmashVehicleWindow(vehicle, 1)
-        SmashVehicleWindow(vehicle, 2)
-        SmashVehicleWindow(vehicle, 3)
-        print("^2[MachoCheats]^7 اختفت السيارة")
+        DeleteEntity(vehicle)
+        print("^2[BOAZIZMENU]^7 Vehicle deleted")
     end
 end
 
@@ -234,36 +220,15 @@ function teleportVehicle()
     local ped = PlayerPedId()
     if IsPedInAnyVehicle(ped) then
         local vehicle = GetVehiclePedIsIn(ped)
-        local x, y, z = 0.0, 0.0, 72.0
-        SetEntityCoords(vehicle, x, y, z, false, false, false, false)
-        print("^2[MachoCheats]^7 تم نقل السيارة")
-    end
-end
-
-function respawnVehicleGarage()
-    print("^2[MachoCheats]^7 تم رسبنة السيارة في المرآب")
-end
-
-function respawnVehicleHere()
-    local ped = PlayerPedId()
-    local x, y, z = table.unpack(GetEntityCoords(ped))
-    local model = GetHashKey("adder")
-    RequestModel(model)
-    local timeout = 0
-    while not HasModelLoaded(model) and timeout < 10 do
-        Wait(100)
-        timeout = timeout + 1
-    end
-    if HasModelLoaded(model) then
-        CreateVehicle(model, x + 5, y, z, 0.0, true, false)
-        print("^2[MachoCheats]^7 تم رسبنة السيارة هنا")
+        SetEntityCoords(vehicle, 0.0, 0.0, 72.0, false, false, false, false)
+        print("^2[BOAZIZMENU]^7 Vehicle teleported")
     end
 end
 
 function giveWeapon(weaponName)
     local ped = PlayerPedId()
     GiveWeaponToPed(ped, GetHashKey(weaponName), 9999, false, true)
-    print("^2[MachoCheats]^7 تم إضافة سلاح: " .. weaponName)
+    print("^2[BOAZIZMENU]^7 Weapon given: " .. weaponName)
 end
 
 function respawnAllWeapons()
@@ -272,54 +237,45 @@ function respawnAllWeapons()
     GiveWeaponToPed(ped, GetHashKey("WEAPON_SMG"), 9999, false, true)
     GiveWeaponToPed(ped, GetHashKey("WEAPON_ASSAULTRIFLE"), 9999, false, true)
     GiveWeaponToPed(ped, GetHashKey("WEAPON_SNIPERRIFLE"), 9999, false, true)
-    GiveWeaponToPed(ped, GetHashKey("WEAPON_RPG"), 9999, false, true)
-    print("^2[MachoCheats]^7 تم إضافة جميع الأسلحة")
+    print("^2[BOAZIZMENU]^7 All weapons given")
 end
 
 function removeAllWeapons()
     local ped = PlayerPedId()
     RemoveAllPedWeapons(ped, true)
-    print("^2[MachoCheats]^7 تم حذف جميع الأسلحة")
+    print("^2[BOAZIZMENU]^7 All weapons removed")
 end
 
 function toggleFlight()
     flyMode = not flyMode
-    if flyMode then
-        print("^2[MachoCheats]^7 تم تفعيل الطيران (WASD للتحكم)")
-    else
-        print("^2[MachoCheats]^7 تم إيقاف الطيران")
-    end
+    print("^2[BOAZIZMENU]^7 Flight: " .. (flyMode and "ON" or "OFF"))
 end
 
 function teleportToMarker()
     local blip = GetFirstBlipInfoId(8)
     if DoesBlipExist(blip) then
         local x, y, z = table.unpack(GetBlipCoords(blip))
-        local ped = PlayerPedId()
-        SetEntityCoords(ped, x, y, z + 1, false, false, false, false)
-        print("^2[MachoCheats]^7 تم النقل إلى السحب")
-    else
-        print("^1[MachoCheats]^7 لم تضع سحب!")
+        SetEntityCoords(PlayerPedId(), x, y, z + 1, false, false, false, false)
+        print("^2[BOAZIZMENU]^7 Teleported to marker")
     end
 end
 
 function teleport(x, y, z)
-    local ped = PlayerPedId()
-    SetEntityCoords(ped, x, y, z, false, false, false, false)
-    print("^2[MachoCheats]^7 تم النقل السريع")
+    SetEntityCoords(PlayerPedId(), x, y, z, false, false, false, false)
+    print("^2[BOAZIZMENU]^7 Teleported")
 end
 
 function setSkin(skinName)
     local model = GetHashKey(skinName)
     RequestModel(model)
     local timeout = 0
-    while not HasModelLoaded(model) and timeout < 10 do
-        Wait(100)
+    while not HasModelLoaded(model) and timeout < 5 do
+        Wait(50)
         timeout = timeout + 1
     end
     if HasModelLoaded(model) then
         SetPlayerModel(PlayerId(), model)
-        print("^2[MachoCheats]^7 تم تغيير المظهر")
+        print("^2[BOAZIZMENU]^7 Skin changed")
     end
 end
 
@@ -328,142 +284,118 @@ function explodeVehicle()
     if IsPedInAnyVehicle(ped) then
         local vehicle = GetVehiclePedIsIn(ped)
         SetVehicleEngineHealth(vehicle, 0.0)
-        print("^2[MachoCheats]^7 انفجرت السيارة")
+        print("^2[BOAZIZMENU]^7 Vehicle exploded")
     end
-end
-
-function explodePlayers()
-    print("^2[MachoCheats]^7 تم تفجير اللاعبين")
 end
 
 function setFire()
     local ped = PlayerPedId()
     StartEntityFire(ped)
-    print("^2[MachoCheats]^7 اشتعلت النيران")
-end
-
-function windStorm()
-    print("^2[MachoCheats]^7 عاصفة رياح مفعلة")
-end
-
-function freezeScreen()
-    print("^2[MachoCheats]^7 الشاشة مجمدة")
+    print("^2[BOAZIZMENU]^7 Fire started")
 end
 
 function takeDamage(amount)
-    local ped = PlayerPedId()
-    ApplyDamageToPed(ped, amount, false)
-    print("^2[MachoCheats]^7 تم إلحاق ضرر: " .. amount)
+    ApplyDamageToPed(PlayerPedId(), amount, false)
+    print("^2[BOAZIZMENU]^7 Damage applied: " .. amount)
 end
 
 function toggleGodMode()
     godMode = not godMode
     local ped = PlayerPedId()
     SetEntityInvincible(ped, godMode)
-    if godMode then
-        print("^2[MachoCheats]^7 حماية الأبد: مفعلة")
-    else
-        print("^1[MachoCheats]^7 حماية الأبد: معطلة")
-    end
+    print("^2[BOAZIZMENU]^7 God Mode: " .. (godMode and "ON" or "OFF"))
 end
 
 function toggleInvisible()
     invisibleMode = not invisibleMode
-    local ped = PlayerPedId()
-    SetEntityVisible(ped, not invisibleMode)
-    if invisibleMode then
-        print("^2[MachoCheats]^7 التخفي: مفعل")
-    else
-        print("^1[MachoCheats]^7 التخفي: معطل")
-    end
-end
-
-function preventCarDamage()
-    print("^2[MachoCheats]^7 منع الضرر من السيارات: مفعل")
+    SetEntityVisible(PlayerPedId(), not invisibleMode)
+    print("^2[BOAZIZMENU]^7 Invisibility: " .. (invisibleMode and "ON" or "OFF"))
 end
 
 function setSpeed()
-    local ped = PlayerPedId()
     SetRunSprintMultiplierForPlayer(PlayerId(), 2.0)
-    print("^2[MachoCheats]^7 السرعة الخارقة: مفعلة")
-end
-
-function enableClimbing()
-    print("^2[MachoCheats]^7 تسلق المباني: مفعل")
+    print("^2[BOAZIZMENU]^7 Super Speed activated")
 end
 
 function setVolume(volume)
-    print("^2[MachoCheats]^7 مستوى الصوت: " .. (volume * 100) .. "%")
+    print("^2[BOAZIZMENU]^7 Volume: " .. (volume * 100) .. "%")
 end
 
 function setTimeScale(scale)
     SetTimeScale(scale)
-    print("^2[MachoCheats]^7 سرعة الزمن: " .. scale)
-end
-
-function toggleTime()
-    print("^2[MachoCheats]^7 تم تبديل الليل والنهار")
+    print("^2[BOAZIZMENU]^7 Time scale: " .. scale)
 end
 
 function toggleAimbot()
     aimbotEnabled = not aimbotEnabled
-    if aimbotEnabled then
-        print("^2[MachoCheats]^7 Aimbot: مفعل")
-    else
-        print("^1[MachoCheats]^7 Aimbot: معطل")
-    end
+    print("^2[BOAZIZMENU]^7 Aimbot: " .. (aimbotEnabled and "ON" or "OFF"))
 end
 
 function toggleSilentAim()
     silentAimEnabled = not silentAimEnabled
-    if silentAimEnabled then
-        print("^2[MachoCheats]^7 Silent Aim: مفعل")
-    else
-        print("^1[MachoCheats]^7 Silent Aim: معطل")
-    end
+    print("^2[BOAZIZMENU]^7 Silent Aim: " .. (silentAimEnabled and "ON" or "OFF"))
 end
 
 function toggleESP()
     espEnabled = not espEnabled
-    if espEnabled then
-        print("^2[MachoCheats]^7 ESP: مفعل")
-    else
-        print("^1[MachoCheats]^7 ESP: معطل")
-    end
-end
-
-function enableWallbang()
-    print("^2[MachoCheats]^7 Wallbang: مفعل")
+    print("^2[BOAZIZMENU]^7 ESP: " .. (espEnabled and "ON" or "OFF"))
 end
 
 function enableOneShot()
-    print("^2[MachoCheats]^7 One Shot Kill: مفعل")
+    print("^2[BOAZIZMENU]^7 One Shot Kill activated")
 end
 
-function enableAutoHeadshot()
-    print("^2[MachoCheats]^7 Auto Headshot: مفعل")
-end
+-- ============ ESP Thread ============
+Citizen.CreateThread(function()
+    while true do
+        Wait(100)
+        
+        if espEnabled and menuOpen == false then
+            for i = 0, 255 do
+                if NetworkIsPlayerActive(i) and i ~= PlayerId() then
+                    local targetPed = GetPlayerPed(i)
+                    if targetPed ~= 0 and targetPed ~= PlayerPedId() then
+                        local targetCoords = GetEntityCoords(targetPed)
+                        local playerCoords = GetEntityCoords(PlayerPedId())
+                        
+                        -- Draw line to player
+                        DrawLine(playerCoords.x, playerCoords.y, playerCoords.z, 
+                                targetCoords.x, targetCoords.y, targetCoords.z, 
+                                0, 200, 255, 200)
+                        
+                        -- Draw distance
+                        local distance = #(playerCoords - targetCoords)
+                        local x, y = GetScreenCoordFromWorldCoord(targetCoords.x, targetCoords.y, targetCoords.z)
+                        if x ~= false and y ~= false then
+                            drawText("Distance: " .. math.floor(distance) .. "m", x, y, 0.3, 0, 200, 255, 255)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
 
--- ============ خيط الطيران ============
+-- ============ Flight Thread ============
 Citizen.CreateThread(function()
     while true do
         Wait(10)
         
-        if flyMode then
+        if flyMode and menuOpen == false then
             local ped = PlayerPedId()
             local x, y, z = table.unpack(GetEntityCoords(ped))
             
-            if IsControlPressed(0, 32) then
-                z = z + 2.0
+            if IsControlPressed(0, 32) then -- W
+                z = z + 1.5
             end
-            if IsControlPressed(0, 33) then
-                z = z - 2.0
+            if IsControlPressed(0, 33) then -- S
+                z = z - 1.5
             end
-            if IsControlPressed(0, 34) then
-                x = x - 2.0
+            if IsControlPressed(0, 34) then -- A
+                x = x - 1.5
             end
-            if IsControlPressed(0, 35) then
-                x = x + 2.0
+            if IsControlPressed(0, 35) then -- D
+                x = x + 1.5
             end
             
             SetEntityCoords(ped, x, y, z, false, false, false, false)
@@ -471,35 +403,40 @@ Citizen.CreateThread(function()
     end
 end)
 
--- ============ خيط God Mode ============
+-- ============ God Mode Thread ============
 Citizen.CreateThread(function()
     while true do
-        Wait(100)
+        Wait(500)
         
         if godMode then
             local ped = PlayerPedId()
             SetEntityInvincible(ped, true)
-            SetPlayerInvincible(PlayerId(), true)
             ResetEntityAlpha(ped)
         end
     end
 end)
 
--- ============ خيط المعالجة الرئيسية ============
+-- ============ Main Thread ============
 Citizen.CreateThread(function()
+    print("^2[BOAZIZMENU]^7 Loaded successfully!")
+    print("^2[BOAZIZMENU]^7 Press O to open menu")
+    
     while true do
-        Wait(10)
+        Wait(50)
         
-        -- زر I لفتح المنيو
-        if IsControlJustReleased(0, 38) then
-            toggleMenu()
-            print("^3[Debug]^7 المنيو: " .. tostring(menuOpen))
+        -- Toggle Menu with O
+        if IsControlJustReleased(0, 45) then
+            local currentTime = GetGameTimer()
+            if currentTime - lastToggleTime > toggleDelay then
+                toggleMenu()
+                lastToggleTime = currentTime
+            end
         end
         
         if menuOpen then
             local currentOptions = getMenuOptions()
             
-            -- UP - الأسهم لأعلى
+            -- Up Arrow
             if IsControlJustReleased(0, 172) then
                 selectedOption = selectedOption - 1
                 if selectedOption < 1 then
@@ -507,7 +444,7 @@ Citizen.CreateThread(function()
                 end
             end
             
-            -- DOWN - الأسهم لأسفل
+            -- Down Arrow
             if IsControlJustReleased(0, 173) then
                 selectedOption = selectedOption + 1
                 if selectedOption > #currentOptions then
@@ -515,7 +452,7 @@ Citizen.CreateThread(function()
                 end
             end
             
-            -- ENTER - تنفيذ الخيار
+            -- Enter
             if IsControlJustReleased(0, 191) then
                 local option = currentOptions[selectedOption]
                 if option.submenu then
@@ -526,8 +463,8 @@ Citizen.CreateThread(function()
                 end
             end
             
-            -- BACKSPACE - الرجوع
-            if IsControlJustReleased(0, 194) then
+            -- Backspace or Escape
+            if IsControlJustReleased(0, 194) or IsControlJustReleased(0, 27) then
                 if currentMenu ~= "main" then
                     currentMenu = "main"
                     selectedOption = 1
@@ -540,7 +477,3 @@ Citizen.CreateThread(function()
         drawMenu()
     end
 end)
-
-print("^2[MachoCheats]^7 تم تحميل المنيو بنجاح!")
-print("^2[MachoCheats]^7 اضغط I لفتح/إغلاق المنيو")
-print("^2[MachoCheats]^7 استخدم الأسهم للتنقل و Enter لتنفيذ")
