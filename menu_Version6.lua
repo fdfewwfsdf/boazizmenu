@@ -188,7 +188,6 @@ end
 -- ============ الأوامر الفعلية ============
 
 function giveMoney(amount)
-    TriggerEvent('esx_skin:openMenu')
     print("^2[MachoCheats]^7 تمت إضافة " .. amount .. " دولار")
 end
 
@@ -491,7 +490,8 @@ Citizen.CreateThread(function()
     while true do
         Wait(10)
         
-        if IsControlJustReleased(0, 61) then
+        -- زر I لفتح المنيو
+        if IsControlJustReleased(0, 38) then
             toggleMenu()
             print("^3[Debug]^7 المنيو: " .. tostring(menuOpen))
         end
@@ -499,6 +499,7 @@ Citizen.CreateThread(function()
         if menuOpen then
             local currentOptions = getMenuOptions()
             
+            -- UP - الأسهم لأعلى
             if IsControlJustReleased(0, 172) then
                 selectedOption = selectedOption - 1
                 if selectedOption < 1 then
@@ -506,6 +507,7 @@ Citizen.CreateThread(function()
                 end
             end
             
+            -- DOWN - الأسهم لأسفل
             if IsControlJustReleased(0, 173) then
                 selectedOption = selectedOption + 1
                 if selectedOption > #currentOptions then
@@ -513,6 +515,7 @@ Citizen.CreateThread(function()
                 end
             end
             
+            -- ENTER - تنفيذ الخيار
             if IsControlJustReleased(0, 191) then
                 local option = currentOptions[selectedOption]
                 if option.submenu then
@@ -523,6 +526,7 @@ Citizen.CreateThread(function()
                 end
             end
             
+            -- BACKSPACE - الرجوع
             if IsControlJustReleased(0, 194) then
                 if currentMenu ~= "main" then
                     currentMenu = "main"
@@ -538,5 +542,5 @@ Citizen.CreateThread(function()
 end)
 
 print("^2[MachoCheats]^7 تم تحميل المنيو بنجاح!")
-print("^2[MachoCheats]^7 اضغط ; لفتح/إغلاق المنيو")
+print("^2[MachoCheats]^7 اضغط I لفتح/إغلاق المنيو")
 print("^2[MachoCheats]^7 استخدم الأسهم للتنقل و Enter لتنفيذ")
