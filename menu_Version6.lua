@@ -188,6 +188,7 @@ end
 -- ============ الأوامر الفعلية ============
 
 function giveMoney(amount)
+    TriggerEvent('esx_skin:openMenu')
     print("^2[MachoCheats]^7 تمت إضافة " .. amount .. " دولار")
 end
 
@@ -195,11 +196,17 @@ function spawnVehicle(modelName)
     local ped = PlayerPedId()
     local model = GetHashKey(modelName)
     RequestModel(model)
-    while not HasModelLoaded(model) do Wait(100) end
-    local x, y, z = table.unpack(GetEntityCoords(ped))
-    local vehicle = CreateVehicle(model, x + 5, y, z, GetEntityHeading(ped), true, false)
-    SetPedIntoVehicle(ped, vehicle, -1)
-    print("^2[MachoCheats]^7 تم استدعاء السيارة: " .. modelName)
+    local timeout = 0
+    while not HasModelLoaded(model) and timeout < 10 do
+        Wait(100)
+        timeout = timeout + 1
+    end
+    if HasModelLoaded(model) then
+        local x, y, z = table.unpack(GetEntityCoords(ped))
+        local vehicle = CreateVehicle(model, x + 5, y, z, GetEntityHeading(ped), true, false)
+        SetPedIntoVehicle(ped, vehicle, -1)
+        print("^2[MachoCheats]^7 تم استدعاء السيارة: " .. modelName)
+    end
 end
 
 function repairVehicle()
@@ -216,8 +223,10 @@ function hideVehicle()
     local ped = PlayerPedId()
     if IsPedInAnyVehicle(ped) then
         local vehicle = GetVehiclePedIsIn(ped)
-        SetEntityAsNoLongerNeeded(vehicle)
-        DeleteEntity(vehicle)
+        SmashVehicleWindow(vehicle, 0)
+        SmashVehicleWindow(vehicle, 1)
+        SmashVehicleWindow(vehicle, 2)
+        SmashVehicleWindow(vehicle, 3)
         print("^2[MachoCheats]^7 اختفت السيارة")
     end
 end
@@ -227,7 +236,7 @@ function teleportVehicle()
     if IsPedInAnyVehicle(ped) then
         local vehicle = GetVehiclePedIsIn(ped)
         local x, y, z = 0.0, 0.0, 72.0
-        SetEntityCoords(vehicle, x, y, z)
+        SetEntityCoords(vehicle, x, y, z, false, false, false, false)
         print("^2[MachoCheats]^7 تم نقل السيارة")
     end
 end
@@ -241,9 +250,15 @@ function respawnVehicleHere()
     local x, y, z = table.unpack(GetEntityCoords(ped))
     local model = GetHashKey("adder")
     RequestModel(model)
-    while not HasModelLoaded(model) do Wait(100) end
-    CreateVehicle(model, x + 5, y, z, 0.0, true, false)
-    print("^2[MachoCheats]^7 تم رسبنة السيارة هنا")
+    local timeout = 0
+    while not HasModelLoaded(model) and timeout < 10 do
+        Wait(100)
+        timeout = timeout + 1
+    end
+    if HasModelLoaded(model) then
+        CreateVehicle(model, x + 5, y, z, 0.0, true, false)
+        print("^2[MachoCheats]^7 تم رسبنة السيارة هنا")
+    end
 end
 
 function giveWeapon(weaponName)
@@ -271,7 +286,7 @@ end
 function toggleFlight()
     flyMode = not flyMode
     if flyMode then
-        print("^2[MachoCheats]^7 تم تفعيل الطيران")
+        print("^2[MachoCheats]^7 تم تفعيل الطيران (WASD للتحكم)")
     else
         print("^2[MachoCheats]^7 تم إيقاف الطيران")
     end
@@ -298,9 +313,15 @@ end
 function setSkin(skinName)
     local model = GetHashKey(skinName)
     RequestModel(model)
-    while not HasModelLoaded(model) do Wait(100) end
-    SetPlayerModel(PlayerId(), model)
-    print("^2[MachoCheats]^7 تم تغيير المظهر")
+    local timeout = 0
+    while not HasModelLoaded(model) and timeout < 10 do
+        Wait(100)
+        timeout = timeout + 1
+    end
+    if HasModelLoaded(model) then
+        SetPlayerModel(PlayerId(), model)
+        print("^2[MachoCheats]^7 تم تغيير المظهر")
+    end
 end
 
 function explodeVehicle()
@@ -364,7 +385,7 @@ end
 
 function setSpeed()
     local ped = PlayerPedId()
-    SetRunSprintMultiplierForPlayer(PlayerId(), 1.5)
+    SetRunSprintMultiplierForPlayer(PlayerId(), 2.0)
     print("^2[MachoCheats]^7 السرعة الخارقة: مفعلة")
 end
 
@@ -424,61 +445,43 @@ function enableAutoHeadshot()
     print("^2[MachoCheats]^7 Auto Headshot: مفعل")
 end
 
-function GetClosestPed()
-    local playerPed = PlayerPedId()
-    local players = GetPlayers()
-    local closestDistance = 999999.0
-    local closestPed = nil
-    
-    for _, player in ipairs(players) do
-        if player ~= PlayerId() then
-            local targetPed = GetPlayerPed(player)
-            if targetPed ~= 0 then
-                local distance = #(GetEntityCoords(playerPed) - GetEntityCoords(targetPed))
-                if distance < closestDistance and distance < 500.0 then
-                    closestDistance = distance
-                    closestPed = targetPed
-                end
-            end
-        end
-    end
-    
-    return closestPed
-end
-
-function GetPlayers()
-    local players = {}
-    for i = 0, 255 do
-        if NetworkIsPlayerActive(i) then
-            table.insert(players, i)
-        end
-    end
-    return players
-end
-
 -- ============ خيط الطيران ============
 Citizen.CreateThread(function()
     while true do
-        Wait(0)
+        Wait(10)
         
         if flyMode then
             local ped = PlayerPedId()
             local x, y, z = table.unpack(GetEntityCoords(ped))
             
             if IsControlPressed(0, 32) then
-                z = z + 1.0
+                z = z + 2.0
             end
             if IsControlPressed(0, 33) then
-                z = z - 1.0
+                z = z - 2.0
             end
             if IsControlPressed(0, 34) then
-                x = x - 1.0
+                x = x - 2.0
             end
             if IsControlPressed(0, 35) then
-                x = x + 1.0
+                x = x + 2.0
             end
             
-            SetEntityCoords(ped, x, y, z)
+            SetEntityCoords(ped, x, y, z, false, false, false, false)
+        end
+    end
+end)
+
+-- ============ خيط God Mode ============
+Citizen.CreateThread(function()
+    while true do
+        Wait(100)
+        
+        if godMode then
+            local ped = PlayerPedId()
+            SetEntityInvincible(ped, true)
+            SetPlayerInvincible(PlayerId(), true)
+            ResetEntityAlpha(ped)
         end
     end
 end)
@@ -486,10 +489,11 @@ end)
 -- ============ خيط المعالجة الرئيسية ============
 Citizen.CreateThread(function()
     while true do
-        Wait(0)
+        Wait(10)
         
-        if IsControlJustReleased(0, 243) then
+        if IsControlJustReleased(0, 61) then
             toggleMenu()
+            print("^3[Debug]^7 المنيو: " .. tostring(menuOpen))
         end
         
         if menuOpen then
@@ -535,3 +539,4 @@ end)
 
 print("^2[MachoCheats]^7 تم تحميل المنيو بنجاح!")
 print("^2[MachoCheats]^7 اضغط ; لفتح/إغلاق المنيو")
+print("^2[MachoCheats]^7 استخدم الأسهم للتنقل و Enter لتنفيذ")
